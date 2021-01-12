@@ -52,7 +52,7 @@ const actions = {
       await auth.login(connector);
       if (auth.provider.web3) {
         auth.web3 = auth.provider.web3;
-      } else if (auth.provider) { 
+      } else if (auth.provider) {
         auth.web3 = new Web3Provider(auth.provider);
       }
       await dispatch('loadProvider');
@@ -65,6 +65,10 @@ const actions = {
     Vue.prototype.$auth.logout();
     commit('SET', { authLoading: false });
     commit('WEB3_SET', { account: null, profile: null });
+    // Remove the web3 object that may have been added to window.ethereum
+    if (window['ethereum'] && window['ethereum']['web3']) {
+      window['ethereum']['web3'] = undefined;
+    }
   },
   loadProvider: async ({ commit, dispatch }) => {
     try {
