@@ -48,15 +48,22 @@ const actions = {
   login: async ({ dispatch, commit }, connector = 'injected') => {
     auth = getInstance();
     commit('SET', { authLoading: true });
-    await auth.login(connector);
-    if (auth.provider) {
-      auth.web3 = new Web3Provider(auth.provider);
+    try {
+      await auth.login(connector);
+      if (auth.provider.web3) {
+        auth.web3 = auth.provider.web3;
+      } else if (auth.provider) { 
+        auth.web3 = new Web3Provider(auth.provider);
+      }
       await dispatch('loadProvider');
+      commit('SET', { authLoading: false });
+    } catch (err) {
+      await dispatch('logout');
     }
-    commit('SET', { authLoading: false });
   },
   logout: async ({ commit }) => {
     Vue.prototype.$auth.logout();
+    commit('SET', { authLoading: false });
     commit('WEB3_SET', { account: null, profile: null });
   },
   loadProvider: async ({ commit, dispatch }) => {
