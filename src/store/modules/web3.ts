@@ -50,10 +50,14 @@ const actions = {
     commit('SET', { authLoading: true });
     try {
       await auth.login(connector);
-      if (auth.provider.web3) {
-        auth.web3 = auth.provider.web3;
-      } else if (auth.provider) {
-        auth.web3 = new Web3Provider(auth.provider);
+      auth.web3 = new Web3Provider(auth.provider);
+      // The Lattice does not have its own provider engine and must overload 
+      // certain web3 functions related to address fetching and signing.
+      if (connector === 'lattice') {
+        auth.web3.send = auth.provider.web3.send;
+        auth.web3.getNetwork = auth.provider.web3.getNetwork;
+        auth.web3.getSigner = auth.provider.web3.getSigner;
+        auth.web3.listAccounts = auth.provider.web3.listAccounts;
       }
       await dispatch('loadProvider');
       commit('SET', { authLoading: false });
